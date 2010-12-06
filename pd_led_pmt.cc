@@ -119,12 +119,13 @@ int main (int arg_c, char **arg_v)
 
   printf("how much wood can a wood chuck chuck: %i\n", h1->GetEntries());
 
-  TF1 *pd_ped_fit = FitPedestal("Pcd36", h1, pedestal_cut);
+  TF1 *pd_ped_fit = FitPedestal("Pdc36", h1, pedestal_cut);
   float pd_pedestal = 0;
   if (pd_ped_fit)
       	pd_pedestal = pd_ped_fit->GetParameter(1);
   else
 	printf("couldn't fit pedestal to Pdc36\n");
+  printf("pd_pedistal=%f\n", pd_pedestal);
 
   for (unsigned i = 0; i < 8; i++) 
   {
@@ -155,7 +156,7 @@ int main (int arg_c, char **arg_v)
 		printf("Empty histogram for %i; skipping.\n",i);
  		continue;
 	}
-	printf("Found %i LED events.\n",nled);
+	printf("Found %i LED events.\n", nled);
 
 	printf("Building TProfile...\n");	
 	p[i] = his2D[i]->ProfileX(Pname[i]);
@@ -178,7 +179,7 @@ int main (int arg_c, char **arg_v)
 	//p[i]->Rebin(4);
   	//TF1 *fit = new TF1("polyfit", "pol1", scan_start_time*60, (scan_time + scan_start_time)*60);
   	//TF1 *fit = new TF1("polyfit", "pol1", scan_start_time, (scan_time + scan_start_time));
-  	TF1 *fit = new TF1("polyfit", "pol1", 100, 300);
+  	TF1 *fit = new TF1("polyfit", "pol1", 0, 275);
 	if (p[i]->Fit(fit, "R"))
 		continue;
 	printf("Plotting LED intensity...\n");	
@@ -219,15 +220,18 @@ int main (int arg_c, char **arg_v)
 	
 	printf("Plotting nPE...\n");	
 	c[i]->GetPad(2)->cd(1);
-	//if(g[i]->Fit(fit,"R"))
-	//	continue;
+	if(g[i]->Fit(fit,"R"))
+		continue;
 	g[i]->SetTitle("Number of Photoelectrons");
 	g[i]->Draw("AL");
 
 	printf("Plotting residuals...\n");	
 	c[i]->GetPad(2)->cd(2);
 	resg[i]->SetTitle("PMT Linearity Residual");
+	resg[i]->SetMinimum(-0.1);
+	resg[i]->SetMaximum(0.1);
 	resg[i]->Draw("AP");
+	g[i]->SetLineColor(4);
   }
 
   TCanvas *ew_canvas = new TCanvas("PMT_linerarity_canvas", "PMT linearity scans for all tubes");
