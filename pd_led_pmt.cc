@@ -1,4 +1,7 @@
-#! 
+
+
+#include <stdlib.h>
+#include "options/options.h"
 
 #include <TFile.h>
 #include <TTree.h>
@@ -21,6 +24,7 @@
  * Authors: Kevin Peter Hickerson
  *          Michael Mendenhall
  * Date: Aug 2010
+ * Modified: July 16, 2011
  */
 
 TF1* FitPedestal(const char *name, TTree *tree, TCut* cut)
@@ -46,37 +50,64 @@ TF1* FitPedestal(const char *name, TTree *tree, TCut* cut)
     }
 }
 
-int main (int arg_c, char **arg_v)
+int main (int argc, char **argv)
 {
-    TApplication app("LED Scans", &arg_c, arg_v);
+    const char * optv[] = {
+        "c:count <number>",
+        "s?str   <string>",
+        "x|xmode",
+        NULL
+    } ;
 
-    if (arg_c < 2)
+    Options  opts(*argv, optv);
+    OptArgvIter  iter(--argc, ++argv);
+    const char *optarg, *str = NULL;
+    int  errors = 0, xflag = 0, count = 1;
+
+    while( char optchar = opts(iter, optarg) ) {
+        switch (optchar) {
+            case 's' :
+                str = optarg; break;
+            case 'x' :
+                ++xflag; break;
+            case 'c' :
+                if (optarg == NULL)  ++errors;
+                else  count = (int) atol(optarg);
+                break;
+            default :  ++errors; break;
+        } //switch
+    }
+
+    if (argc < 2)
     {
-        printf("Usage: %s <daq run number> [scan start time in min] [scan time in min]\n", arg_v[0]);
+        printf("Usage: %s <daq run number> [scan start time in min] [scan time in min]\n", argv[0]);
         exit(1);
     }
-    int run = atoi(arg_v[1]);
+    int run = atoi(argv[1]);
     if (run == 0)
     {
         printf("Need a valid run number.\n");
-        printf("Usage: %s <daq run number> [scan start time in min] [scan time in min]\n", arg_v[0]);
+        printf("Usage: %s <daq run number> [scan start time in min] [scan time in min]\n", argv[0]);
         exit(1);
     }
 
     float scan_time = 15.0; // in minutes
     float scan_start_time = 1.0; // in minutes
-    if (arg_c > 2) 
+    if (argc > 2) 
     {
-        scan_start_time = atof(arg_v[2]);
+        scan_start_time = atof(argv[2]);
     }
 
-    if (arg_c > 3) 
+    if (argc > 3) 
     {
-        scan_time = atof(arg_v[3]);
+        scan_time = atof(argv[3]);
     }
 
     char filename[1024];
-    sprintf(filename, "/home/data_analyzed/2010/rootfiles/full%s.root", arg_v[1]);
+    sprintf(filename, "/home/data_analyzed/2010/rootfiles/full%s.root", argv[1]);
+
+    // run this as a ROOT application
+    TApplication app("LED Scans", &argc, argv);
 
     // Plot options
     gStyle->SetOptStat(1);
@@ -108,12 +139,12 @@ int main (int arg_c, char **arg_v)
     TGraph* g[8];
     TGraphErrors* resg[8];
 
-    char * H2Fname[8] = { "H2FE1", "H2FE2", "H2FE3", "H2FE4", "H2FW1", "H2FW2", "H2FW3", "H2FW4"};
-    char * Qadc[8] = { "Qadc0", "Qadc1", "Qadc2", "Qadc3", "Qadc4", "Qadc5", "Qadc6", "Qadc7"};
-    char * Pname[8] = { "PE1", "PE2", "PE3", "PE4", "PW1", "PW2", "PW3", "PW4"};
-    char * Cname[8] = { "CE1", "CE2", "CE3", "CE4", "CW1", "CW2", "CW3", "CW4"};
-    char * Dname[8] = { "DE1", "DE2", "DE3", "DE4", "DW1", "DW2", "DW3", "DW4"};
-    char * title[8] = {  "LED Scan E1", "LED Scan E2", "LED Scan E3", "LED Scan E4",
+    TString H2Fname[8] = { "H2FE1", "H2FE2", "H2FE3", "H2FE4", "H2FW1", "H2FW2", "H2FW3", "H2FW4"};
+    TString Qadc[8] = { "Qadc0", "Qadc1", "Qadc2", "Qadc3", "Qadc4", "Qadc5", "Qadc6", "Qadc7"};
+    TString Pname[8] = { "PE1", "PE2", "PE3", "PE4", "PW1", "PW2", "PW3", "PW4"};
+    TString Cname[8] = { "CE1", "CE2", "CE3", "CE4", "CW1", "CW2", "CW3", "CW4"};
+    TString Dname[8] = { "DE1", "DE2", "DE3", "DE4", "DW1", "DW2", "DW3", "DW4"};
+    TString title[8] = {  "LED Scan E1", "LED Scan E2", "LED Scan E3", "LED Scan E4",
         "LED Scan W1", "LED Scan W2", "LED Scan W3", "LED Scan W4"};
 
     gStyle->SetPalette(1);
