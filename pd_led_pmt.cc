@@ -177,9 +177,17 @@ int main (int argc, char **argv)
                 //(int)(1.2*(scan_time+scan_start_time)*6), 0, 1.2*(scan_time+scan_start_time)*60, 
                 512, 0, 2047/4,
                 1<<8, -pedestal, 4096-pedestal);
-        char draw_cmd[1024];
+        //char draw_cmd[1024];
         //sprintf(draw_cmd, "%s-%f:S83028/1e6 >> %s", Qadc[i], pedestal, H2Fname[i]);
-        sprintf(draw_cmd, "(%s-%f):(Pdc36-%f) >> %s", Qadc[i], pedestal, pd_pedestal, H2Fname[i]);
+        //sprintf(draw_cmd, "(%s-%f):(Pdc36-%f) >> %s", Qadc[i], pedestal, pd_pedestal, H2Fname[i]);
+        TString draw_cmd "("+
+                            Qadc[i]
+                            + "-" +
+                            pedestal
+                            + "):(Pdc36-" +
+                            pd_pedestal 
+                            + ") >> " +
+                            H2Fname[i]; 
         h1->Draw(draw_cmd, *led_cut);
         his2D[i]->SetTitle(title[i]);
 
