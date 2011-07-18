@@ -10,7 +10,10 @@
 #include <TStyle.h>
 #include <TApplication.h>
 #include <TF1.h>
+#include <TChain.h>
 #include <math.h>
+#include <string>
+using namespace std;
 
 // g++ `root-config --cflags` `root-config --libs` Bi_pulser.cc -o Bi_pulser_analysis
 
@@ -47,82 +50,74 @@ TF1* FitPedestal(const char *name, TTree *tree, TCut* cut)
 
 int main (int arg_c, char **arg_v)
 {
-  TApplication app("Pulser Scans", &arg_c, arg_v);
+    TApplication app("Pulser Scans", &arg_c, arg_v);
 
-  if (arg_c < 2)
-  {
-	printf("Usage: %s <daq run number> [scan start time in min] [scan time in min]\n", arg_v[0]);
+    if (arg_c < 2)
+    {
+	printf("Usage: %s <run number> [<run number>...]\n", arg_v[0]);
 	exit(1);
-  }
-  int run = atoi(arg_v[1]);
-  if (run == 0)
-  {
-	printf("Need a valid run number.\n");
-	printf("Usage: %s <daq run number> [scan start time in min] [scan time in min]\n", arg_v[0]);
-	exit(1);
-  }
-
-	float scan_time = 15.0; // in minutes
-  	float scan_start_time = 1.0; // in minutes
-  	if (arg_c > 2) 
-  	{
-		scan_start_time = atof(arg_v[2]);
-	}
-		
-  	if (arg_c > 3) 
-  	{
-		scan_time = atof(arg_v[3]);
-	}
-		
-  char filename[1024];
-  sprintf(filename, "/home/data_analyzed/2010/rootfiles/full%s.root", arg_v[1]);
+    }
+    
+    TChain* h1 = new TChain("h1");
+    for (int arg = 1; arg < arg_c; arg++)
+    { 
+    	int run = atoi(arg_v[arg]);
+    	if (run == 0)
+    	{
+		printf("Needs at least one valid run number.\n");
+		printf("Usage: %s <run number> [<run number>...]\n", arg_v[0]);
+		exit(1);
+    	}
+    	char filename[1024];
+    	sprintf(filename, "/home/data_analyzed/2010/rootfiles/full%s.root", arg_v[arg]);
  
-  // Plot options
-  gStyle->SetOptStat(1);
-  gStyle->SetOptFit(1);
+    	// Open ntuple
+	h1->Add(filename);
+/*
+    	TFile* myfile = new TFile(filename);
+    	if (myfile->IsZombie())
+    	{
+		printf("File %s not found.\n", filename);
+		exit(1);
+    	}
+*/
+    }
 
-  // Open ntuple
-  TFile* myfile = new TFile(filename);
-  if (myfile->IsZombie())
-  {
-	printf("File %s not found.\n", filename);
-	exit(1);
-  }
+    float scan_time = 200.0; // in minutes
+    float scan_start_time = 1.0; // in minutes
 
-  TTree* h1 = (TTree*)myfile->Get("h1");
-  if (h1 == NULL)
-  {
-	printf("TTree not found in file %s.\n", filename);
-        exit(0);
-  }
+    //for (int i = 0; i < 
+		
+    // Plot options
+    gStyle->SetOptStat(1);
+    gStyle->SetOptFit(1);
 
-  // Define cuts
-  TCut *pulser_cut = new TCut("((int(Sis00) & 32) > 0) && (int(Sis00) & 131) == 0"); // one-fold trigger w/o LED and 2-fold
-  TCut *pedestal_cut = new TCut("(int(Sis00) & 3) == 0");           // 
-  //TCut *lednumcut = new TCut("(Sis00 == 129) && (Number < 400000)");
-	
+    // Define cuts
+    TCut *pulser_cut = new TCut("((int(Sis00) & 32) > 0) && (int(Sis00) & 131) == 0"); // one-fold trigger w/o LED and 2-fold
+    TCut *pedestal_cut = new TCut("(int(Sis00) & 3) == 0");           // 
+    //TCut *lednumcut = new TCut("(Sis00 == 129) && (Number < 400000)");
   
-  TH2F* his2D[8];
-  TProfile* p[8];
-  TCanvas* c[8];
-  TGraph* g[8];
-  TGraphErrors* resg[8];
+    TH2F* his2D[8];
+    TProfile* p[8];
+    TCanvas* c[8];
+    TGraph* g[8];
+    TGraphErrors* resg[8];
 
-  char * H2Fname[8] = { "H2FE1", "H2FE2", "H2FE3", "H2FE4", "H2FW1", "H2FW2", "H2FW3", "H2FW4"};
-  char * Qadc[8] = { "Qadc0", "Qadc1", "Qadc2", "Qadc3", "Qadc4", "Qadc5", "Qadc6", "Qadc7"};
-  char * Pname[8] = { "PE1", "PE2", "PE3", "PE4", "PW1", "PW2", "PW3", "PW4"};
-  char * Cname[8] = { "CE1", "CE2", "CE3", "CE4", "CW1", "CW2", "CW3", "CW4"};
-  char * Dname[8] = { "DE1", "DE2", "DE3", "DE4", "DW1", "DW2", "DW3", "DW4"};
-  char * title[8] = {  "Bi207 Pulser Scan E1", "Bi207 Pulser Scan E2", "Bi207 Pulser Scan E3", "Bi207 Pulser Scan E4",
+    char * H2Fname[8] = { "H2FE1", "H2FE2", "H2FE3", "H2FE4", "H2FW1", "H2FW2", "H2FW3", "H2FW4"};
+    char * Qadc[8] = { "Qadc0", "Qadc1", "Qadc2", "Qadc3", "Qadc4", "Qadc5", "Qadc6", "Qadc7"};
+    char * Pname[8] = { "PE1", "PE2", "PE3", "PE4", "PW1", "PW2", "PW3", "PW4"};
+    char * Cname[8] = { "CE1", "CE2", "CE3", "CE4", "CW1", "CW2", "CW3", "CW4"};
+    char * Dname[8] = { "DE1", "DE2", "DE3", "DE4", "DW1", "DW2", "DW3", "DW4"};
+    char * title[8] = {  "Bi207 Pulser Scan E1", "Bi207 Pulser Scan E2", "Bi207 Pulser Scan E3", "Bi207 Pulser Scan E4",
   			"Bi207 Pulser Scan W1", "Bi207 Pulser Scan W2", "Bi207 Pulser Scan W3", "Bi207 Pulser Scan W4"};
 
-  gStyle->SetPalette(1);
-  gStyle->SetOptStat("");
+    gStyle->SetPalette(1);
+    gStyle->SetOptStat("");
 
-  printf("how much wood can a wood chuck chuck: %i\n", h1->GetEntries());
+    printf("Entries in all files: %i\n", h1->GetEntries());
 
-  for (unsigned i = 0; i < 8; i++) 
-  {
+    for (unsigned i = 0; i < 8; i++) 
+    {
   	c[i] = new TCanvas(Cname[i], title[i]);
  	c[i]->Divide(2,1);
 	c[i]->cd(1);
@@ -134,7 +129,8 @@ int main (int arg_c, char **arg_v)
                 pedestal = ped_fit->GetParameter(1);
 
   	// Define histograms
-  	his2D[i] = new TH2F(H2Fname[i], "", 
+	TString H2Fnamei = "H2FE" + i;
+  	his2D[i] = new TH2F(H2Fnamei, "", 
 		(int)(1.2*(scan_time+scan_start_time)*6), 0, 1.2*(scan_time+scan_start_time)*60, 
 		1<<8, -pedestal, 4096-pedestal);
 	char draw_cmd[1024];
@@ -156,7 +152,7 @@ int main (int arg_c, char **arg_v)
 	
 	printf("Building nPE plot...\n");	
 	g[i] = new TGraph(p[i]->GetNbinsX());
-	const float max_npe = 1000;
+	const float max_npe = 10000;
         for (unsigned j = 0; j < p[i]->GetNbinsX(); j++)
 	{
                 float x = p[i]->GetBinCenter(j);
@@ -186,7 +182,6 @@ int main (int arg_c, char **arg_v)
         for (unsigned j = 0; j < p[i]->GetNbinsX(); j++)
 	{
                 float x = p[i]->GetBinCenter(j);
-		
 		float b = p[i]->GetBinContent(j);
 		float y=0;
 		if (b != 0)
