@@ -1,0 +1,3 @@
+#! /bin/sh
+
+g++ `root-config --cflags` `root-config --libs` pd_led_pmt.cc -o pd_led_pmt_analysis
