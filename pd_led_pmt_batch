@@ -1,0 +1,12 @@
+#!/bin/sh
+
+
+max=17000
+while [ $i -lt $max ] do
+    run_filename=/data/ucnadata/2010/rootfiles/full$i.root
+    if [ -r $run_filename ] then
+        ./pb_led_pmt_analysis $i
+    else
+        echo "slipping @run_filename..."
+    fi
+done

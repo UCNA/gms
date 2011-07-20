@@ -1,7 +1,7 @@
 
 
 #include <stdlib.h>
-#include "options/options.h"
+//#include "options/options.h"
 
 #include <TFile.h>
 #include <TTree.h>
@@ -52,31 +52,33 @@ TF1* FitPedestal(const char *name, TTree *tree, TCut* cut)
 
 int main (int argc, char **argv)
 {
-    const char * optv[] = {
-        "c:count <number>",
-        "s?str   <string>",
-        "x|xmode",
-        NULL
-    } ;
+    /*
+       const char * optv[] = {
+       "c:count <number>",
+       "s?str   <string>",
+       "x|xmode",
+       NULL
+       } ;
 
-    Options  opts(*argv, optv);
-    OptArgvIter  iter(--argc, ++argv);
-    const char *optarg, *str = NULL;
-    int  errors = 0, xflag = 0, count = 1;
+       Options  opts(*argv, optv);
+       OptArgvIter  iter(--argc, ++argv);
+       const char *optarg, *str = NULL;
+       int  errors = 0, xflag = 0, count = 1;
 
-    while( char optchar = opts(iter, optarg) ) {
-        switch (optchar) {
-            case 's' :
-                str = optarg; break;
-            case 'x' :
-                ++xflag; break;
-            case 'c' :
-                if (optarg == NULL)  ++errors;
-                else  count = (int) atol(optarg);
-                break;
-            default :  ++errors; break;
-        } //switch
-    }
+       while( char optchar = opts(iter, optarg) ) {
+       switch (optchar) {
+       case 's' :
+       str = optarg; break;
+       case 'x' :
+       ++xflag; break;
+       case 'c' :
+       if (optarg == NULL)  ++errors;
+       else  count = (int) atol(optarg);
+       break;
+       default :  ++errors; break;
+       } //switch
+       }
+     */
 
     if (argc < 2)
     {
@@ -104,7 +106,9 @@ int main (int argc, char **argv)
     }
 
     char filename[1024];
-    sprintf(filename, "/home/data_analyzed/2010/rootfiles/full%s.root", argv[1]);
+    //sprintf(filename, "/home/data_analyzed/2010/rootfiles/full%s.root", argv[1]);
+    sprintf(filename, "/data/ucnadata/2010/rootfiles/full%s.root", argv[1]);
+    // example: /data/ucnadata/2010/rootfiles/full16290.root
 
     // run this as a ROOT application
     TApplication app("LED Scans", &argc, argv);
@@ -180,14 +184,14 @@ int main (int argc, char **argv)
         //char draw_cmd[1024];
         //sprintf(draw_cmd, "%s-%f:S83028/1e6 >> %s", Qadc[i], pedestal, H2Fname[i]);
         //sprintf(draw_cmd, "(%s-%f):(Pdc36-%f) >> %s", Qadc[i], pedestal, pd_pedestal, H2Fname[i]);
-        TString draw_cmd "("+
-                            Qadc[i]
-                            + "-" +
-                            pedestal
-                            + "):(Pdc36-" +
-                            pd_pedestal 
-                            + ") >> " +
-                            H2Fname[i]; 
+        TString draw_cmd = "(";
+        draw_cmd+= Qadc[i] ;
+        draw_cmd+= "-" ;
+        draw_cmd+= pedestal ;
+        draw_cmd+= "):(Pdc36-" ;
+        draw_cmd+= pd_pedestal  ;
+        draw_cmd+= ") >> " ;
+        draw_cmd+= H2Fname[i]; 
         h1->Draw(draw_cmd, *led_cut);
         his2D[i]->SetTitle(title[i]);
 
@@ -255,40 +259,43 @@ int main (int argc, char **argv)
             } else {
                 resg[i]->SetPoint(j,0,0);
             }
-            }
-            p[i]->SetErrorOption("s");
-            c[i]->GetPad(2)->Divide(1,2);
-
-            printf("Plotting nPE...\n");	
-            c[i]->GetPad(2)->cd(1);
-            if(g[i]->Fit(fit,"R"))
-                continue;
-            g[i]->SetTitle("Number of Photoelectrons");
-            g[i]->Draw("AL");
-
-            printf("Plotting residuals...\n");	
-            c[i]->GetPad(2)->cd(2);
-            resg[i]->SetTitle("PMT Linearity Residual");
-            resg[i]->SetMinimum(-0.1);
-            resg[i]->SetMaximum(0.1);
-            resg[i]->Draw("AP");
-            g[i]->SetLineColor(4);
         }
+        p[i]->SetErrorOption("s");
+        c[i]->GetPad(2)->Divide(1,2);
 
-        TCanvas *ew_canvas = new TCanvas("PMT_linerarity_canvas", "PMT linearity scans for all tubes");
-        ew_canvas->Divide(2,1);
-        for (int ew = 0; ew < 2; ew++)
-        {
-            ew_canvas->GetPad(ew+1)->Divide(2,2);
-            for (int tx = 0; tx < 2; tx++) {
-                for (int ty = 0; ty < 2; ty++) {
-                    ew_canvas->GetPad(ew+1)->cd(tx+2*ty+1);
-                    p[4*ew+tx+2*ty]->Draw("");
-                }
+        printf("Plotting nPE...\n");	
+        c[i]->GetPad(2)->cd(1);
+        if(g[i]->Fit(fit,"R"))
+            continue;
+        g[i]->SetTitle("Number of Photoelectrons");
+        g[i]->Draw("AL");
+
+        printf("Plotting residuals...\n");	
+        c[i]->GetPad(2)->cd(2);
+        resg[i]->SetTitle("PMT Linearity Residual");
+        resg[i]->SetMinimum(-0.1);
+        resg[i]->SetMaximum(0.1);
+        resg[i]->Draw("AP");
+        g[i]->SetLineColor(4);
+    }
+
+    TCanvas *ew_canvas = new TCanvas("PMT_linerarity_canvas", "PMT linearity scans for all tubes", 1280, 720);
+    ew_canvas->Divide(2,1);
+    for (int ew = 0; ew < 2; ew++) {
+        ew_canvas->GetPad(ew+1)->Divide(2,2);
+        for (int tx = 0; tx < 2; tx++) {
+            for (int ty = 0; ty < 2; ty++) {
+                ew_canvas->GetPad(ew+1)->cd(tx+2*ty+1);
+                p[4*ew+tx+2*ty]->Draw("");
             }
         }
+    }
+    TString gif_filename = "/data/kevinh/gms/images/pd_led_pmt_";
+    gif_filename += argv[1];
+    gif_filename += ".gif";
+    ew_canvas->SaveAs(gif_filename);
 
-        app.Run();
+    //app.Run();
 
-        return 0;
-        }
+    return 0;
+}
