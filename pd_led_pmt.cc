@@ -209,9 +209,10 @@ int main (int argc, char **argv)
 
 
         printf("Building nPE plot...\n");	
-        g[i] = new TGraph(p[i]->GetNbinsX());
+        const int n = p[i]->GetNbinsX();
+        g[i] = new TGraph(n);
         const float max_npe = 1000;
-        for (unsigned j = 0; j < p[i]->GetNbinsX(); j++)
+        for (unsigned j = 0; j < n; j++)
         {
             float x = p[i]->GetBinCenter(j);
             float w = p[i]->GetBinError(j);
@@ -220,11 +221,28 @@ int main (int argc, char **argv)
             g[i]->SetPoint(j, x, y);
         }
 
-        printf("Re-bin and fit...\n");	
+        printf("Finding range...");
+        float rough_delta = 4000;
+        float prev_p_i = 0;
+        unsigned range_max = 275;
+        for (unsigned j = 0; j < n; j += n/20)
+        {
+            float _p_i = p[i]->GetBinContent(j);
+            float _rough_delta = _p_i - prev_p_i;
+            if (_rough_delta < 0.5 * rough_delta)
+            {
+                range_max = j - 20;
+                break;
+            }
+            prev_p_i = _p_i;
+            rough_delta = _rough_delta;
+        }
+
+        printf("Fitting...\n");	
         //p[i]->Rebin(4);
         //TF1 *fit = new TF1("polyfit", "pol1", scan_start_time*60, (scan_time + scan_start_time)*60);
         //TF1 *fit = new TF1("polyfit", "pol1", scan_start_time, (scan_time + scan_start_time));
-        TF1 *fit = new TF1("polyfit", "pol1", 0, 275);
+        TF1 *fit = new TF1("polyfit", "pol1", 0, range_max);
         if (p[i]->Fit(fit, "R"))
             continue;
         printf("Plotting LED intensity...\n");	
