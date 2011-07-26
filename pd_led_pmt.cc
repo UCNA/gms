@@ -208,6 +208,7 @@ int main (int argc, char **argv)
         p[i]->SetErrorOption("s");
 
 
+        // find the number of photoelectrons and plot
         printf("Building nPE plot...\n");	
         const int n = p[i]->GetNbinsX();
         g[i] = new TGraph(n);
@@ -221,23 +222,26 @@ int main (int argc, char **argv)
             g[i]->SetPoint(j, x, y);
         }
 
-        printf("Finding range...");
-        float rough_delta = 4000;
+        // Find if the approximate range of the fit
+        printf("Finding range...\n");
+        float rough_delta = 0;
         float prev_p_i = 0;
         unsigned range_max = 275;
         for (unsigned j = 0; j < n; j += n/20)
         {
             float _p_i = p[i]->GetBinContent(j);
             float _rough_delta = _p_i - prev_p_i;
-            if (_rough_delta < 0.5 * rough_delta)
+            if (_rough_delta > 0.5 * rough_delta)
             {
                 range_max = j - 20;
+                printf("found range for p[i] %i\n", range_max); 
                 break;
             }
             prev_p_i = _p_i;
             rough_delta = _rough_delta;
         }
 
+        // fit a more accurate line
         printf("Fitting...\n");	
         //p[i]->Rebin(4);
         //TF1 *fit = new TF1("polyfit", "pol1", scan_start_time*60, (scan_time + scan_start_time)*60);
