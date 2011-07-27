@@ -11,8 +11,12 @@
 #include <TApplication.h>
 #include <TF1.h>
 #include <TChain.h>
+
 #include <math.h>
 #include <string>
+#include <stdlib.h>
+#include <stdio.h>
+
 using namespace std;
 
 // g++ `root-config --cflags` `root-config --libs` Bi_pulser.cc -o Bi_pulser_analysis
@@ -103,12 +107,12 @@ int main (int arg_c, char **arg_v)
     TGraph* g[8];
     TGraphErrors* resg[8];
 
-    char * H2Fname[8] = { "H2FE1", "H2FE2", "H2FE3", "H2FE4", "H2FW1", "H2FW2", "H2FW3", "H2FW4"};
-    char * Qadc[8] = { "Qadc0", "Qadc1", "Qadc2", "Qadc3", "Qadc4", "Qadc5", "Qadc6", "Qadc7"};
-    char * Pname[8] = { "PE1", "PE2", "PE3", "PE4", "PW1", "PW2", "PW3", "PW4"};
-    char * Cname[8] = { "CE1", "CE2", "CE3", "CE4", "CW1", "CW2", "CW3", "CW4"};
-    char * Dname[8] = { "DE1", "DE2", "DE3", "DE4", "DW1", "DW2", "DW3", "DW4"};
-    char * title[8] = {  "Bi207 Pulser Scan E1", "Bi207 Pulser Scan E2", "Bi207 Pulser Scan E3", "Bi207 Pulser Scan E4",
+    const char * H2Fname[8] = { "H2FE1", "H2FE2", "H2FE3", "H2FE4", "H2FW1", "H2FW2", "H2FW3", "H2FW4"};
+    const char * Qadc[8] = { "Qadc0", "Qadc1", "Qadc2", "Qadc3", "Qadc4", "Qadc5", "Qadc6", "Qadc7"};
+    const char * Pname[8] = { "PE1", "PE2", "PE3", "PE4", "PW1", "PW2", "PW3", "PW4"};
+    const char * Cname[8] = { "CE1", "CE2", "CE3", "CE4", "CW1", "CW2", "CW3", "CW4"};
+    const char * Dname[8] = { "DE1", "DE2", "DE3", "DE4", "DW1", "DW2", "DW3", "DW4"};
+    const char * title[8] = {  "Bi207 Pulser Scan E1", "Bi207 Pulser Scan E2", "Bi207 Pulser Scan E3", "Bi207 Pulser Scan E4",
   			"Bi207 Pulser Scan W1", "Bi207 Pulser Scan W2", "Bi207 Pulser Scan W3", "Bi207 Pulser Scan W4"};
 
     gStyle->SetPalette(1);

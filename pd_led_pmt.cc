@@ -221,41 +221,63 @@ int main (int argc, char **argv)
             y = (y>max_npe)?max_npe:y;
             g[i]->SetPoint(j, x, y);
         }
-
+        
+        
         // Find if the approximate range of the fit
-        printf("Finding range...\n");
-        float rough_delta = 0;
-        float prev_p_i = 0;
-        unsigned range_max = 275;
-        for (unsigned j = 0; j < n; j += n/20)
+        printf("Finding range... ");
+        float rough_delta = 4000;
+        float prev_p_i = -1000;
+        float max_adc_channel = 3600;
+        unsigned range_max = 200;
+        unsigned jumps = 20;
+        for (unsigned j = 0; j < n; j += 10)
         {
-            float _p_i = p[i]->GetBinContent(j);
-            float _rough_delta = _p_i - prev_p_i;
-            if (_rough_delta > 0.5 * rough_delta)
-            {
-                range_max = j - 20;
-                printf("found range for p[i] %i\n", range_max); 
+            float _p_i_content = p[i]->GetBinContent(j);
+            if ( _p_i_content > max_adc_channel/2 )
+                jumps /= 4;
+            if ( _p_i_content > max_adc_channel ) {
+                range_max = j - jumps;
+                printf("done.\n");
                 break;
+            }
+
+
+                /*
+                float _rough_delta = (_p_i - prev_p_i);
+                if (rough_delta > 40)
+                {
+                    range_max = j -70;
+                    break;
+                }
             }
             prev_p_i = _p_i;
             rough_delta = _rough_delta;
+            */
         }
+        printf("found range %i\n", range_max); 
+         
 
         // fit a more accurate line
-        printf("Fitting...\n");	
+        printf("Fitting...");	
         //p[i]->Rebin(4);
         //TF1 *fit = new TF1("polyfit", "pol1", scan_start_time*60, (scan_time + scan_start_time)*60);
         //TF1 *fit = new TF1("polyfit", "pol1", scan_start_time, (scan_time + scan_start_time));
-        TF1 *fit = new TF1("polyfit", "pol1", 0, range_max);
+        TF1 *fit = new TF1("polyfit", "[0]*x + [1]*x**2", 0, range_max);
         if (p[i]->Fit(fit, "R"))
             continue;
-        printf("Plotting LED intensity...\n");	
+        printf("done.\n");	
+
+
+        printf("Plotting LED intensity...");	
         p[i]->SetMarkerColor(2);
         p[i]->SetLineColor(2);
         p[i]->SetMarkerStyle(8);
         p[i]->SetMarkerSize(0.75);
         //his1.Fit("gaus");
+        printf("done.\n");	
 
+
+        // Draw what we fit
         his2D[i]->Draw("colz");
         p[i]->Draw("Same");
         p[i]->SetErrorOption(); // actual fit errors, not Poisson error bars for residual plot
