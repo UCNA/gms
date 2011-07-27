@@ -118,7 +118,7 @@ int main (int arg_c, char **arg_v)
     gStyle->SetPalette(1);
     gStyle->SetOptStat("");
 
-    printf("Entries in all files: %i\n", h1->GetEntries());
+    //printf("Entries in all files: %i\n", h1->GetEntries());
 
     for (unsigned i = 0; i < 8; i++) 
     {

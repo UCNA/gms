@@ -154,7 +154,7 @@ int main (int argc, char **argv)
     gStyle->SetPalette(1);
     gStyle->SetOptStat("");
 
-    printf("how much wood can a wood chuck chuck: %i\n", h1->GetEntries());
+    //printf("how much wood can a wood chuck chuck: %i\n", h1->GetEntries());
 
     TF1 *pd_ped_fit = FitPedestal("Pdc36", h1, pedestal_cut);
     float pd_pedestal = 0;
@@ -262,7 +262,9 @@ int main (int argc, char **argv)
         //p[i]->Rebin(4);
         //TF1 *fit = new TF1("polyfit", "pol1", scan_start_time*60, (scan_time + scan_start_time)*60);
         //TF1 *fit = new TF1("polyfit", "pol1", scan_start_time, (scan_time + scan_start_time));
-        TF1 *fit = new TF1("polyfit", "[0]*x + [1]*x**2", 0, range_max);
+        //TF1 *fit = new TF1("polyfit", "[0]*x + [1]*x**2", 0, range_max);
+        //TF1 *fit = new TF1("polyfit", "pol2", 0, range_max);
+        TF1 *fit = new TF1("polyfit", "[0] + [1]*x*exp(x*[2])", 0, range_max);
         if (p[i]->Fit(fit, "R"))
             continue;
         printf("done.\n");	
