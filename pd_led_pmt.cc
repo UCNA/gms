@@ -1,7 +1,7 @@
 
 
 #include <stdlib.h>
-//#include "options/options.h"
+#include "options/options.h"
 
 #include <TFile.h>
 #include <TTree.h>
@@ -52,33 +52,33 @@ TF1* FitPedestal(const char *name, TTree *tree, TCut* cut)
 
 int main (int argc, char **argv)
 {
-    /*
-       const char * optv[] = {
+#if 0
+    const char * optv[] = {
        "c:count <number>",
        "s?str   <string>",
        "x|xmode",
        NULL
-       } ;
+    };
 
-       Options  opts(*argv, optv);
-       OptArgvIter  iter(--argc, ++argv);
-       const char *optarg, *str = NULL;
-       int  errors = 0, xflag = 0, count = 1;
+    Options  opts(*argv, optv);
+    OptArgvIter  iter(--argc, ++argv);
+    const char *optarg, *str = NULL;
+    int  errors = 0, xflag = 0, count = 1;
 
-       while( char optchar = opts(iter, optarg) ) {
+    while( char optchar = opts(iter, optarg) ) {
        switch (optchar) {
-       case 's' :
-       str = optarg; break;
-       case 'x' :
-       ++xflag; break;
-       case 'c' :
-       if (optarg == NULL)  ++errors;
-       else  count = (int) atol(optarg);
-       break;
-       default :  ++errors; break;
+           case 's' :
+           str = optarg; break;
+           case 'x' :
+           ++xflag; break;
+           case 'c' :
+           if (optarg == NULL)  ++errors;
+           else  count = (int) atol(optarg);
+           break;
+           default :  ++errors; break;
        } //switch
-       }
-     */
+    }
+#endif
 
     if (argc < 2)
     {
@@ -93,6 +93,7 @@ int main (int argc, char **argv)
         exit(1);
     }
 
+/*
     float scan_time = 15.0; // in minutes
     float scan_start_time = 1.0; // in minutes
     if (argc > 2) 
@@ -104,6 +105,7 @@ int main (int argc, char **argv)
     {
         scan_time = atof(argv[3]);
     }
+    */
 
     char filename[1024];
     //sprintf(filename, "/home/data_analyzed/2010/rootfiles/full%s.root", argv[1]);
