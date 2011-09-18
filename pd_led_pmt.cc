@@ -108,7 +108,7 @@ int main (int argc, char **argv)
     }
 
     // run this as a ROOT application
-    TApplication app("LED Scans", &argc, argv);
+    //TApplication app("LED Scans", &argc, argv);
 
     // Plot options
     gStyle->SetOptStat(1);
