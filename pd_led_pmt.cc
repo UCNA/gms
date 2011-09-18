@@ -4,7 +4,8 @@
 #include "options/options.h"
 
 #include <TFile.h>
-#include <TTree.h>
+//#include <TTree.h>
+#include <TChain.h>
 #include <TString.h>
 #include <TCut.h>
 #include <TProfile.h>
@@ -82,14 +83,14 @@ int main (int argc, char **argv)
 
     if (argc < 2)
     {
-        printf("Usage: %s <daq run number> [scan start time in min] [scan time in min]\n", argv[0]);
+        printf("Usage: %s <daq run number> [<second run number>]\n", argv[0]);
         exit(1);
     }
     int run = atoi(argv[1]);
     int run_end = run;
     if (run == 0)
     {
-        printf("Need a valid run number.\n");
+        printf("Need a valid run number for first argument.\n");
         printf("Usage: %s <daq run number> [<second run number>]\n", argv[0]);
         exit(1);
     }
@@ -100,16 +101,11 @@ int main (int argc, char **argv)
         run_end = atoi(argv[2]);
         if (run_end == 0)
         {
-            printf("Need a valid run number.\n");
+            printf("Need a valid run number for second argument.\n");
             printf("Usage: %s <daq run number> [<second run number>]\n", argv[0]);
             exit(1);
         }
     }
-
-    char filename[1024];
-    //sprintf(filename, "/home/data_analyzed/2010/rootfiles/full%s.root", argv[1]);
-    sprintf(filename, "/data/ucnadata/2010/rootfiles/full%s.root", argv[1]);
-    // example: /data/ucnadata/2010/rootfiles/full16290.root
 
     // run this as a ROOT application
     TApplication app("LED Scans", &argc, argv);
@@ -118,20 +114,32 @@ int main (int argc, char **argv)
     gStyle->SetOptStat(1);
     gStyle->SetOptFit(1);
 
-    // Open ntuple
-    TFile* myfile = new TFile(filename);
-    if (myfile->IsZombie())
-    {
-        printf("File %s not found.\n", filename);
-        exit(1);
+    TChain h1("h1");
+    for (int n = 1; n < argc; n++) {
+        char filename[1024];
+        sprintf(filename, "/data/ucnadata/2010/rootfiles/full%s.root", argv[1]);
+        // example: /data/ucnadata/2010/rootfiles/full16290.root
+
+        h1.Add(filename);
     }
 
-    TTree* h1 = (TTree*)myfile->Get("h1");
-    if (h1 == NULL)
-    {
-        printf("TTree not found in file %s.\n", filename);
-        exit(0);
-    }
+/*
+        // Open ntuple
+        TFile* myfile = new TFile(filename);
+        if (myfile->IsZombie())
+        {
+            printf("File %s not found.\n", filename);
+            exit(1);
+        }
+
+        // extract tree
+        TTree* h1 = (TTree*)myfile->Get("h1");
+        if (h1 == NULL)
+        {
+            printf("TTree not found in file %s.\n", filename);
+            exit(0);
+        }
+*/
 
     // Define cuts
     TCut *led_cut = new TCut("(int(Sis00) & 128) > 0");           // 129 if east-PMTs on, 161 if GMS-ref also on
@@ -157,7 +165,7 @@ int main (int argc, char **argv)
 
     //printf("how much wood can a wood chuck chuck: %i\n", h1->GetEntries());
 
-    TF1 *pd_ped_fit = FitPedestal("Pdc36", h1, pedestal_cut);
+    TF1 *pd_ped_fit = FitPedestal("Pdc36", &h1, pedestal_cut);
     float pd_pedestal = 0;
     if (pd_ped_fit)
         pd_pedestal = pd_ped_fit->GetParameter(1);
@@ -172,7 +180,7 @@ int main (int argc, char **argv)
         c[i]->cd(1);
 
         // find Pedestal
-        TF1 *ped_fit = FitPedestal(Qadc[i], h1, pedestal_cut);
+        TF1 *ped_fit = FitPedestal(Qadc[i], &h1, pedestal_cut);
         float pedestal = 0;
         if (ped_fit)
             pedestal = ped_fit->GetParameter(1);
@@ -191,7 +199,7 @@ int main (int argc, char **argv)
         draw_cmd+= pd_pedestal  ;
         draw_cmd+= ") >> " ;
         draw_cmd+= H2Fname[i]; 
-        h1->Draw(draw_cmd, *led_cut);
+        h1.Draw(draw_cmd, *led_cut);
         his2D[i]->SetTitle(title[i]);
 
         int nled = (int)his2D[i]->GetEntries();
