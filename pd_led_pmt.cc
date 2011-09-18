@@ -86,26 +86,25 @@ int main (int argc, char **argv)
         exit(1);
     }
     int run = atoi(argv[1]);
+    int run_end = run;
     if (run == 0)
     {
         printf("Need a valid run number.\n");
-        printf("Usage: %s <daq run number> [scan start time in min] [scan time in min]\n", argv[0]);
+        printf("Usage: %s <daq run number> [<second run number>]\n", argv[0]);
         exit(1);
     }
 
-/*
-    float scan_time = 15.0; // in minutes
-    float scan_start_time = 1.0; // in minutes
-    if (argc > 2) 
+    // next run number for a range
+    if (argc > 2)
     {
-        scan_start_time = atof(argv[2]);
+        run_end = atoi(argv[2]);
+        if (run_end == 0)
+        {
+            printf("Need a valid run number.\n");
+            printf("Usage: %s <daq run number> [<second run number>]\n", argv[0]);
+            exit(1);
+        }
     }
-
-    if (argc > 3) 
-    {
-        scan_time = atof(argv[3]);
-    }
-    */
 
     char filename[1024];
     //sprintf(filename, "/home/data_analyzed/2010/rootfiles/full%s.root", argv[1]);
@@ -180,10 +179,8 @@ int main (int argc, char **argv)
 
         // Define histograms
         his2D[i] = new TH2F(H2Fname[i], "", 
-                //(int)(1.2*(scan_time+scan_start_time)*6), 0, 1.2*(scan_time+scan_start_time)*60, 
                 512, 0, 2047/4,
                 1<<8, -pedestal, 4096-pedestal);
-        //char draw_cmd[1024];
         //sprintf(draw_cmd, "%s-%f:S83028/1e6 >> %s", Qadc[i], pedestal, H2Fname[i]);
         //sprintf(draw_cmd, "(%s-%f):(Pdc36-%f) >> %s", Qadc[i], pedestal, pd_pedestal, H2Fname[i]);
         TString draw_cmd = "(";
