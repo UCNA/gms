@@ -81,27 +81,18 @@ int main (int argc, char **argv)
     }
 #endif
 
+    int run[argc];
     if (argc < 2)
     {
         printf("Usage: %s <daq run number> [<second run number>]\n", argv[0]);
         exit(1);
     }
-    int run = atoi(argv[1]);
-    int run_end = run;
-    if (run == 0)
+    else for (int n = 1; n < argc; n++)
     {
-        printf("Need a valid run number for first argument.\n");
-        printf("Usage: %s <daq run number> [<second run number>]\n", argv[0]);
-        exit(1);
-    }
-
-    // next run number for a range
-    if (argc > 2)
-    {
-        run_end = atoi(argv[2]);
-        if (run_end == 0)
+        run[n] = atoi(argv[n]);
+        if (run[n] == 0)
         {
-            printf("Need a valid run number for second argument.\n");
+            printf("Need a valid run number for argument.\n");
             printf("Usage: %s <daq run number> [<second run number>]\n", argv[0]);
             exit(1);
         }
@@ -117,9 +108,7 @@ int main (int argc, char **argv)
     TChain h1("h1");
     for (int n = 1; n < argc; n++) {
         char filename[1024];
-        sprintf(filename, "/data/ucnadata/2010/rootfiles/full%s.root", argv[1]);
-        // example: /data/ucnadata/2010/rootfiles/full16290.root
-
+        sprintf(filename, "/data/ucnadata/2010/rootfiles/full%s.root", argv[n]);
         h1.Add(filename);
     }
 
@@ -142,8 +131,8 @@ int main (int argc, char **argv)
 */
 
     // Define cuts
-    TCut *led_cut = new TCut("(int(Sis00) & 128) > 0");           // 129 if east-PMTs on, 161 if GMS-ref also on
-    TCut *pedestal_cut = new TCut("!(int(Sis00)&1)");           // 129 if east-PMTs on, 161 if GMS-ref also on
+    TCut *led_cut = new TCut("(int(Sis00) & 128) > 0");     // 129 if east-PMTs on, 161 if GMS-ref also on
+    TCut *pedestal_cut = new TCut("!(int(Sis00)&1)");       // 129 if east-PMTs on, 161 if GMS-ref also on
     //TCut *lednumcut = new TCut("(Sis00 == 129) && (Number < 400000)");
 
     TH2F* his2D[8];
