@@ -18,7 +18,6 @@
 #include <TF1.h>
 #include <math.h>
 
-// g++ `root-config --cflags` `root-config --libs` led_scan.cc -o led_scan_analysis
 
 
 /**
@@ -26,6 +25,7 @@
  *          Michael Mendenhall
  * Date: Aug 2010
  * Modified: July 16, 2011
+ * Makefile: g++ `root-config --cflags` `root-config --libs` led_scan.cc -o led_scan_analysis
  */
 
 TF1* FitPedestal(const char *name, TTree *tree, TCut* cut)
@@ -99,7 +99,7 @@ int main (int argc, char **argv)
     }
 
     // run this as a ROOT application
-    //TApplication app("LED Scans", &argc, argv);
+    TApplication app("PD LED GMS Scans", &argc, argv);
 
     // Plot options
     gStyle->SetOptStat(1);
@@ -250,7 +250,7 @@ int main (int argc, char **argv)
             rough_delta = _rough_delta;
             */
         }
-        printf("found range %i\n", range_max); 
+        printf("found range %i.\n", range_max); 
          
 
         // fit a more accurate line
@@ -260,7 +260,10 @@ int main (int argc, char **argv)
         //TF1 *fit = new TF1("polyfit", "pol1", scan_start_time, (scan_time + scan_start_time));
         //TF1 *fit = new TF1("polyfit", "[0]*x + [1]*x**2", 0, range_max);
         //TF1 *fit = new TF1("polyfit", "pol2", 0, range_max);
-        TF1 *fit = new TF1("polyfit", "[0] + [1]*x*exp(x*[2])", 0, range_max);
+        //TF1 *fit = new TF1("polyfit", "[0] + [1]*(x/500)*exp((x/500)*[2])", 0, range_max);
+        //TF1 *fit = new TF1("polyfit", "[0] + [1]*x/300 + [2]*x/300", 0, range_max);
+        //TF1 *fit = new TF1("polyfit", "pol3", 0, range_max);
+        TF1 *fit = new TF1("polyfit", "[0]*x + [1]*x*x", 0, range_max);
         if (p[i]->Fit(fit, "R"))
             continue;
         printf("done.\n");	
@@ -332,12 +335,12 @@ int main (int argc, char **argv)
             }
         }
     }
-    TString gif_filename = "/data/kevinh/gms/images/pd_led_pmt_";
-    gif_filename += argv[1];
-    gif_filename += ".gif";
-    ew_canvas->SaveAs(gif_filename);
+    TString _filename = "/data/kevinh/gms/images/pd_led_pmt_";
+    _filename += argv[1];
+    ew_canvas->SaveAs(_filename + ".gif");
+    ew_canvas->SaveAs(_filename + ".pdf");
 
-    //app.Run();
+    app.Run();
 
     return 0;
 }
