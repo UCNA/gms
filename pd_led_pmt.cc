@@ -141,8 +141,10 @@ int main (int argc, char **argv)
     TGraph* g[8];
     TGraphErrors* resg[8];
 
-    TString H2Fname[8] = { "H2FE1", "H2FE2", "H2FE3", "H2FE4", "H2FW1", "H2FW2", "H2FW3", "H2FW4"};
-    TString Qadc[8] = { "Qadc0", "Qadc1", "Qadc2", "Qadc3", "Qadc4", "Qadc5", "Qadc6", "Qadc7"};
+    //TString H2Fname[8] = { "H2FE1", "H2FE2", "H2FE3", "H2FE4", "H2FW1", "H2FW2", "H2FW3", "H2FW4"};
+    const char * H2Fname[8] = { "H2FE1", "H2FE2", "H2FE3", "H2FE4", "H2FW1", "H2FW2", "H2FW3", "H2FW4"};
+    //TString Qadc[8] = { "Qadc0", "Qadc1", "Qadc2", "Qadc3", "Qadc4", "Qadc5", "Qadc6", "Qadc7"};
+    const char * Qadc[8] = { "Qadc0", "Qadc1", "Qadc2", "Qadc3", "Qadc4", "Qadc5", "Qadc6", "Qadc7"};
     TString Pname[8] = { "PE1", "PE2", "PE3", "PE4", "PW1", "PW2", "PW3", "PW4"};
     TString Cname[8] = { "CE1", "CE2", "CE3", "CE4", "CW1", "CW2", "CW3", "CW4"};
     TString Dname[8] = { "DE1", "DE2", "DE3", "DE4", "DW1", "DW2", "DW3", "DW4"};
@@ -175,20 +177,17 @@ int main (int argc, char **argv)
             pedestal = ped_fit->GetParameter(1);
 
         // Define histograms
-        his2D[i] = new TH2F(H2Fname[i], "", 
-                512, 0, 2047/4,
-                1<<8, -pedestal, 4096-pedestal);
+        his2D[i] = new TH2F(H2Fname[i], "", 256, 0, 2047/4, 1<<8, -pedestal, 4096-pedestal);
+        char draw_cmd[1024];
         //sprintf(draw_cmd, "%s-%f:S83028/1e6 >> %s", Qadc[i], pedestal, H2Fname[i]);
         //sprintf(draw_cmd, "(%s-%f):(Pdc36-%f) >> %s", Qadc[i], pedestal, pd_pedestal, H2Fname[i]);
-        TString draw_cmd = "(";
-        draw_cmd+= Qadc[i] ;
-        draw_cmd+= "-" ;
-        draw_cmd+= pedestal ;
-        draw_cmd+= "):(Pdc36-" ;
-        draw_cmd+= pd_pedestal  ;
-        draw_cmd+= ") >> " ;
-        draw_cmd+= H2Fname[i]; 
-        h1.Draw(draw_cmd, *led_cut);
+        sprintf(draw_cmd, "(Pdc36-%f) : (%s-%f) >> %s", pd_pedestal, (char*)Qadc[i], pedestal, H2Fname[i]);
+        /*
+        String draw_cmd = "(Pcd36 - " + pd_pedestal + ") : ( " ;
+        draw_cmd += Qadc[i] + "-" + pedestal + ") >> " ;
+        draw_cmd += H2Fname[i]; 
+        */
+        h1.Draw((TString)draw_cmd, *led_cut);
         his2D[i]->SetTitle(title[i]);
 
         int nled = (int)his2D[i]->GetEntries();
@@ -220,11 +219,12 @@ int main (int argc, char **argv)
         
         
         // Find if the approximate range of the fit
+        unsigned range_max = 3600;
+        float max_adc_channel = 3600;
+        /*
         printf("Finding range... ");
         float rough_delta = 4000;
         float prev_p_i = -1000;
-        float max_adc_channel = 3600;
-        unsigned range_max = 200;
         unsigned jumps = 20;
         for (unsigned j = 0; j < n; j += 10)
         {
@@ -236,21 +236,9 @@ int main (int argc, char **argv)
                 printf("done.\n");
                 break;
             }
-
-
-                /*
-                float _rough_delta = (_p_i - prev_p_i);
-                if (rough_delta > 40)
-                {
-                    range_max = j -70;
-                    break;
-                }
-            }
-            prev_p_i = _p_i;
-            rough_delta = _rough_delta;
-            */
         }
         printf("found range %i.\n", range_max); 
+        */
          
 
         // fit a more accurate line
