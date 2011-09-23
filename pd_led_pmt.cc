@@ -123,8 +123,8 @@ int main (int argc, char **argv)
     TString Pname[8] = { "PE1", "PE2", "PE3", "PE4", "PW1", "PW2", "PW3", "PW4"};
     TString Cname[8] = { "CE1", "CE2", "CE3", "CE4", "CW1", "CW2", "CW3", "CW4"};
     TString Dname[8] = { "DE1", "DE2", "DE3", "DE4", "DW1", "DW2", "DW3", "DW4"};
-    TString title[8] = {  "LED Scan E1", "LED Scan E2", "LED Scan E3", "LED Scan E4",
-        "LED Scan W1", "LED Scan W2", "LED Scan W3", "LED Scan W4"};
+    TString title[8] = { "LED Scan E1", "LED Scan E2", "LED Scan E3", "LED Scan E4",
+                         "LED Scan W1", "LED Scan W2", "LED Scan W3", "LED Scan W4" };
 
     gStyle->SetPalette(1);
     gStyle->SetOptStat("");
@@ -157,11 +157,7 @@ int main (int argc, char **argv)
         //sprintf(draw_cmd, "%s-%f:S83028/1e6 >> %s", Qadc[i], pedestal, H2Fname[i]);
         //sprintf(draw_cmd, "(%s-%f):(Pdc36-%f) >> %s", Qadc[i], pedestal, pd_pedestal, H2Fname[i]);
         sprintf(draw_cmd, "(Pdc36-%f) : (%s-%f) >> %s", pd_pedestal, (char*)Qadc[i], pedestal, H2Fname[i]);
-        /*
-        String draw_cmd = "(Pcd36 - " + pd_pedestal + ") : ( " ;
-        draw_cmd += Qadc[i] + "-" + pedestal + ") >> " ;
-        draw_cmd += H2Fname[i]; 
-        */
+
         h1.Draw(TString(draw_cmd), *led_cut);
         his2D[i]->SetTitle(title[i]);
 
@@ -173,12 +169,13 @@ int main (int argc, char **argv)
         }
         printf("Found %i LED events.\n", nled);
 
+        // build a profile...
         printf("Building TProfile...\n");	
         p[i] = his2D[i]->ProfileX(Pname[i]);
         p[i]->SetErrorOption("s");
 
 
-        // find the number of photoelectrons and plot
+        // find the number of photoelectrons and plot...
         printf("Building nPE plot...\n");	
         const int n = p[i]->GetNbinsX();
         g[i] = new TGraph(n);
@@ -187,15 +184,33 @@ int main (int argc, char **argv)
         {
             float x = p[i]->GetBinCenter(j);
             float w = p[i]->GetBinError(j);
+            //float y = (w<1.0)?0:pow(p[i]->GetBinContent(j)/w,2);
             float y = (w<1.0)?0:pow(p[i]->GetBinContent(j)/w,2);
-            y = (y>max_npe)?max_npe:y;
+            y = (y>max_npe)? max_npe : y;
             g[i]->SetPoint(j, x, y);
         }
         
-        // Find if the approximate range of the fit
-        unsigned range_max = 3600;
-        float max_adc_channel = 3600;
 
+        // Find the approximate range of the fit
+        float pmt_adc_min = 500;
+        float pmt_adc_max = pmt_adc_min;
+        float pd_adc_min = 20;
+        float pd_adc_max = 140;
+
+        //float range_max = 1000;
+        //float slope = 0;
+
+        // iterate through the bins and stop 
+        // before exceeding pd_adc_max
+        for (unsigned j = 0; j < n; j++ ) 
+        {
+            float _x = p[i]->GetBinContent(j);
+            if (_x < pd_adc_max) 
+                pmt_adc_max = p[i]->GetBinCenter(j);
+            else
+                break;
+        }
+/*
         // fit the range 
         printf("Finding range... ");
         float rough_delta = 4000;
@@ -204,15 +219,17 @@ int main (int argc, char **argv)
         for (unsigned j = 0; j < n; j += 10)
         {
             float _p_i_content = p[i]->GetBinContent(j);
-            if ( _p_i_content > max_adc_channel/2 )
+            if ( _p_i_content > max_pd_channel/2 )
                 jumps /= 4;
-            if ( _p_i_content > max_adc_channel ) {
+            if ( _p_i_content > max_pd_channel ) {
                 range_max = j - jumps;
                 printf("done.\n");
                 break;
             }
         }
-        printf("found range %i.\n", range_max); 
+        printf("found range %f.\n", range_max); 
+*/
+
 
         // fit a more accurate line
         printf("Fitting...");	
@@ -224,7 +241,7 @@ int main (int argc, char **argv)
         //TF1 *fit = new TF1("polyfit", "[0] + [1]*(x/500)*exp((x/500)*[2])", 0, range_max);
         //TF1 *fit = new TF1("polyfit", "[0] + [1]*x/300 + [2]*x/300", 0, range_max);
         //TF1 *fit = new TF1("polyfit", "pol3", 0, range_max);
-        TF1 *fit = new TF1("polyfit", "[0]*x + [1]*x*x", 0, range_max);
+        TF1 *fit = new TF1("polyfit", "[0]*x + [1]*x*x", 0, pmt_adc_max);
         if (p[i]->Fit(fit, "R"))
             continue;
         printf("done.\n");	
