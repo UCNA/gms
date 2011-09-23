@@ -34,10 +34,13 @@ TF1* FitPedestal(const char *name, TTree *tree, TCut* cut)
     sprintf(pedestal_name, "pedestal_histogram_%s", name);
     char pedestal_draw[1024];
     sprintf(pedestal_draw, "%s >> %s", name, pedestal_name);
+
     TH1F* pedestal_histogram = new TH1F(pedestal_name, "Pedestal Events", 2000,0,2000);
     tree->Draw(pedestal_draw, *cut);
+
     int max_bin = pedestal_histogram->GetMaximumBin();
     float max_bin_x = pedestal_histogram->GetBinCenter(max_bin);
+
     TF1 *fit = new TF1("gauss_fit", "gaus", max_bin_x-12, max_bin_x+12);
     if (!pedestal_histogram->Fit(fit, "R"))
     {
@@ -53,34 +56,6 @@ TF1* FitPedestal(const char *name, TTree *tree, TCut* cut)
 
 int main (int argc, char **argv)
 {
-#if 0
-    const char * optv[] = {
-       "c:count <number>",
-       "s?str   <string>",
-       "x|xmode",
-       NULL
-    };
-
-    Options  opts(*argv, optv);
-    OptArgvIter  iter(--argc, ++argv);
-    const char *optarg, *str = NULL;
-    int  errors = 0, xflag = 0, count = 1;
-
-    while( char optchar = opts(iter, optarg) ) {
-       switch (optchar) {
-           case 's' :
-           str = optarg; break;
-           case 'x' :
-           ++xflag; break;
-           case 'c' :
-           if (optarg == NULL)  ++errors;
-           else  count = (int) atol(optarg);
-           break;
-           default :  ++errors; break;
-       } //switch
-    }
-#endif
-
     int run[argc];
     if (argc < 2)
     {
@@ -177,7 +152,7 @@ int main (int argc, char **argv)
             pedestal = ped_fit->GetParameter(1);
 
         // Define histograms
-        his2D[i] = new TH2F(H2Fname[i], "", 256, 0, 2047/4, 1<<8, -pedestal, 4096-pedestal);
+        his2D[i] = new TH2F(H2Fname[i], title[i], 256, -pedestal, 4096-pedestal, 256, -pd_pedestal, 256-pd_pedestal);
         char draw_cmd[1024];
         //sprintf(draw_cmd, "%s-%f:S83028/1e6 >> %s", Qadc[i], pedestal, H2Fname[i]);
         //sprintf(draw_cmd, "(%s-%f):(Pdc36-%f) >> %s", Qadc[i], pedestal, pd_pedestal, H2Fname[i]);
@@ -187,7 +162,7 @@ int main (int argc, char **argv)
         draw_cmd += Qadc[i] + "-" + pedestal + ") >> " ;
         draw_cmd += H2Fname[i]; 
         */
-        h1.Draw((TString)draw_cmd, *led_cut);
+        h1.Draw(TString(draw_cmd), *led_cut);
         his2D[i]->SetTitle(title[i]);
 
         int nled = (int)his2D[i]->GetEntries();
@@ -217,11 +192,11 @@ int main (int argc, char **argv)
             g[i]->SetPoint(j, x, y);
         }
         
-        
         // Find if the approximate range of the fit
         unsigned range_max = 3600;
         float max_adc_channel = 3600;
-        /*
+
+        // fit the range 
         printf("Finding range... ");
         float rough_delta = 4000;
         float prev_p_i = -1000;
@@ -238,8 +213,6 @@ int main (int argc, char **argv)
             }
         }
         printf("found range %i.\n", range_max); 
-        */
-         
 
         // fit a more accurate line
         printf("Fitting...");	
