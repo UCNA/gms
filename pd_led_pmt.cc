@@ -209,26 +209,6 @@ int main (int argc, char **argv)
             else
                 break;
         }
-/*
-        // fit the range 
-        printf("Finding range... ");
-        float rough_delta = 4000;
-        float prev_p_i = -1000;
-        unsigned jumps = 20;
-        for (unsigned j = 0; j < n; j += 10)
-        {
-            float _p_i_content = p[i]->GetBinContent(j);
-            if ( _p_i_content > max_pd_channel/2 )
-                jumps /= 4;
-            if ( _p_i_content > max_pd_channel ) {
-                range_max = j - jumps;
-                printf("done.\n");
-                break;
-            }
-        }
-        printf("found range %f.\n", range_max); 
-*/
-
 
         // fit a more accurate line
         printf("Fitting...");	
