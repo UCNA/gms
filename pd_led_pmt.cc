@@ -74,11 +74,11 @@ int main (int argc, char **argv)
     }
 
     // run this as a ROOT application
-    TApplication app("PD LED GMS Scans", &argc, argv);
+    //TApplication app("PD LED GMS Scans", &argc, argv);
 
     // Plot options
-    gStyle->SetOptStat(1);
-    gStyle->SetOptFit(1);
+    gStyle->SetOptStat(0);
+    gStyle->SetOptFit(0);
 
     TChain h1("h1");
     for (int n = 1; n < argc; n++) {
@@ -250,8 +250,8 @@ int main (int argc, char **argv)
         printf("Plotting LED intensity...");	
         p[i]->SetMarkerColor(2);
         p[i]->SetLineColor(2);
-        p[i]->SetMarkerStyle(8);
-        p[i]->SetMarkerSize(0.75);
+        p[i]->SetMarkerStyle(1);
+        p[i]->SetMarkerSize(0.15);
         //his1.Fit("gaus");
         printf("done.\n");	
 
@@ -283,7 +283,7 @@ int main (int argc, char **argv)
                 resg[i]->SetPoint(j,0,0);
             }
         }
-        p[i]->SetErrorOption("s");
+        //p[i]->SetErrorOption("s");
         c[i]->GetPad(2)->Divide(1,2);
 
         printf("Plotting nPE...\n");	
@@ -291,6 +291,8 @@ int main (int argc, char **argv)
         if(g[i]->Fit(fit,"R"))
             continue;
         g[i]->SetTitle("Number of Photoelectrons");
+        g[i]->SetLineColor(4);
+        g[i]->SetLineWidth(1);
         g[i]->Draw("AL");
 
         printf("Plotting residuals...\n");	
@@ -299,7 +301,6 @@ int main (int argc, char **argv)
         resg[i]->SetMinimum(-0.1);
         resg[i]->SetMaximum(0.1);
         resg[i]->Draw("AP");
-        g[i]->SetLineColor(4);
     }
 
     TCanvas *ew_canvas = new TCanvas("PMT_linerarity_canvas", "PMT linearity scans for all tubes", 1280, 720);
@@ -315,10 +316,13 @@ int main (int argc, char **argv)
     }
     TString _filename = "/data/kevinh/gms/images/pd_led_pmt_";
     _filename += argv[1];
+    _filename += "_";
+    _filename += argv[argc-1];
+
     ew_canvas->SaveAs(_filename + ".gif");
     ew_canvas->SaveAs(_filename + ".pdf");
 
-    app.Run();
+    //app.Run();
 
     return 0;
 }
