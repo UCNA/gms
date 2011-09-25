@@ -1,7 +1,7 @@
 
 
 #include <stdlib.h>
-#include "options/options.h"
+//#include "options/options.h"
 
 #include <TFile.h>
 //#include <TTree.h>
@@ -190,7 +190,6 @@ int main (int argc, char **argv)
             g[i]->SetPoint(j, x, y);
         }
         
-
         // Find the approximate range of the fit
         float pmt_adc_min = 500;
         float pmt_adc_max = pmt_adc_min;
@@ -241,15 +240,22 @@ int main (int argc, char **argv)
         //TF1 *fit = new TF1("polyfit", "[0] + [1]*(x/500)*exp((x/500)*[2])", 0, range_max);
         //TF1 *fit = new TF1("polyfit", "[0] + [1]*x/300 + [2]*x/300", 0, range_max);
         //TF1 *fit = new TF1("polyfit", "pol3", 0, range_max);
-        TF1 *fit = new TF1("polyfit", "[0]*x + [1]*x*x", 0, pmt_adc_max);
-        if (p[i]->Fit(fit, "R"))
+        TF1 *p_fit = new TF1("polyfit", "[0]*x + [1]*x*x", 0, pmt_adc_max);
+        if (p[i]->Fit(p_fit, "R"))
+            continue;
+
+/*
+        TF2 *h2_fit = new TF2("polyfit", "[0]*x + [1]*x*x", 0, pmt_adc_max);
+        if (p[i]->Fit(h2_fit, "R"))
             continue;
         printf("done.\n");	
-
+*/
 
         printf("Plotting LED intensity...");	
         p[i]->SetMarkerColor(2);
         p[i]->SetLineColor(2);
+        p[i]->SetLineWidth(0.5);
+        p[i]->SetLineWidth(4);
         p[i]->SetMarkerStyle(1);
         p[i]->SetMarkerSize(0.15);
         //his1.Fit("gaus");
@@ -268,7 +274,7 @@ int main (int argc, char **argv)
             float b = p[i]->GetBinContent(j);
             float y=0;
             if (b != 0)
-                y = (b-fit->Eval(x))/b;
+                y = (b - p_fit->Eval(x)) / b;
             if (y > 0.1)
                 y = 0.1;
             if (y < -0.1)
@@ -288,7 +294,7 @@ int main (int argc, char **argv)
 
         printf("Plotting nPE...\n");	
         c[i]->GetPad(2)->cd(1);
-        if(g[i]->Fit(fit,"R"))
+        if(g[i]->Fit(p_fit,"R"))
             continue;
         g[i]->SetTitle("Number of Photoelectrons");
         g[i]->SetLineColor(4);
@@ -303,13 +309,15 @@ int main (int argc, char **argv)
         resg[i]->Draw("AP");
     }
 
-    TCanvas *ew_canvas = new TCanvas("PMT_linerarity_canvas", "PMT linearity scans for all tubes", 1280, 720);
-    ew_canvas->Divide(2,1);
+    TCanvas *p_ew_canvas = new TCanvas("PMT_profile_canvas", "PMT profile linearity scans for all tubes", 1280, 720);
+    TCanvas *h2_ew_canvas = new TCanvas("hist2F_canvas", "PMT histograms for all tubes", 1280, 720);
+    p_ew_canvas->Divide(2,1);
     for (int ew = 0; ew < 2; ew++) {
-        ew_canvas->GetPad(ew+1)->Divide(2,2);
+        p_ew_canvas->GetPad(ew+1)->Divide(2,2);
         for (int tx = 0; tx < 2; tx++) {
             for (int ty = 0; ty < 2; ty++) {
-                ew_canvas->GetPad(ew+1)->cd(tx+2*ty+1);
+                p_ew_canvas->GetPad(ew+1)->cd(tx+2*ty+1);
+                h2_ew_canvas->GetPad(ew+1)->cd(tx+2*ty+1);
                 p[4*ew+tx+2*ty]->Draw("");
             }
         }
@@ -319,8 +327,8 @@ int main (int argc, char **argv)
     _filename += "_";
     _filename += argv[argc-1];
 
-    ew_canvas->SaveAs(_filename + ".gif");
-    ew_canvas->SaveAs(_filename + ".pdf");
+    p_ew_canvas->SaveAs(_filename + ".gif");
+    p_ew_canvas->SaveAs(_filename + ".pdf");
 
     //app.Run();
 
