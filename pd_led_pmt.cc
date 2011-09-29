@@ -1,7 +1,7 @@
 
 
 #include <stdlib.h>
-//#include "options/options.h"
+#include "options/options.h"
 
 #include <TFile.h>
 //#include <TTree.h>
@@ -152,7 +152,7 @@ int main (int argc, char **argv)
             pedestal = ped_fit->GetParameter(1);
 
         // Define histograms
-        his2D[i] = new TH2F(H2Fname[i], title[i], 256, -pedestal, 4096-pedestal, 256, -pd_pedestal, 256-pd_pedestal);
+        his2D[i] = new TH2F(H2Fname[i], title[i], 256, -pedestal, 4096-pedestal, 360, -pd_pedestal, 180-pd_pedestal);
         char draw_cmd[1024];
         //sprintf(draw_cmd, "%s-%f:S83028/1e6 >> %s", Qadc[i], pedestal, H2Fname[i]);
         //sprintf(draw_cmd, "(%s-%f):(Pdc36-%f) >> %s", Qadc[i], pedestal, pd_pedestal, H2Fname[i]);
@@ -289,27 +289,34 @@ int main (int argc, char **argv)
         resg[i]->Draw("AP");
     }
 
+    // print the old style profile with fit
     TCanvas *p_ew_canvas = new TCanvas("PMT_profile_canvas", "PMT profile linearity scans for all tubes", 1280, 720);
-    TCanvas *h2_ew_canvas = new TCanvas("hist2F_canvas", "PMT histograms for all tubes", 1280, 720);
     p_ew_canvas->Divide(2,1);
     for (int ew = 0; ew < 2; ew++) {
         p_ew_canvas->GetPad(ew+1)->Divide(2,2);
-        for (int tx = 0; tx < 2; tx++) {
+        for (int tx = 0; tx < 2; tx++)
             for (int ty = 0; ty < 2; ty++) {
                 p_ew_canvas->GetPad(ew+1)->cd(tx+2*ty+1);
-                h2_ew_canvas->GetPad(ew+1)->cd(tx+2*ty+1);
                 p[4*ew+tx+2*ty]->Draw("");
+            }
+    }
+    TString _filename = "/data/kevinh/gms/images/pd_led_pmt_profile";
+    p_ew_canvas->SaveAs(_filename + argv[1] + "_" + argv[argc-1] + ".pdf");
+
+    // Draw and save the TH2F as a density
+    TCanvas *h2_ew_canvas = new TCanvas("hist2F_canvas", "PMT histograms for all tubes", 1280, 720);
+    h2_ew_canvas->Divide(2,1);
+    for (int ew = 0; ew < 2; ew++) {
+        h2_ew_canvas->GetPad(ew+1)->Divide(2,2);
+        for (int tx = 0; tx < 2; tx++) {
+            for (int ty = 0; ty < 2; ty++) {
+                h2_ew_canvas->GetPad(ew+1)->cd(tx+2*ty+1);
+                his2D[4*ew+tx+2*ty]->Draw("colz");
             }
         }
     }
-    TString _filename = "/data/kevinh/gms/images/pd_led_pmt_";
-    _filename += argv[1];
-    _filename += "_";
-    _filename += argv[argc-1];
-
-    p_ew_canvas->SaveAs(_filename + ".gif");
-    p_ew_canvas->SaveAs(_filename + ".pdf");
-
+    _filename = "/data/kevinh/gms/images/pd_led_pmt_h2d";
+    p_ew_canvas->SaveAs(_filename + argv[1] + "_" + argv[argc-1] + ".pdf");
     //app.Run();
 
     return 0;

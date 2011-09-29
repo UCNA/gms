@@ -1,4 +1,4 @@
-g++ `root-config --cflags` `root-config --libs` Bi_pulser.cc -o Bi_pulser_analysis
-g++ `root-config --cflags` `root-config --libs` led_scan.cc -o led_scan_analysis
-g++ `root-config --cflags` `root-config --libs` pd_led_pmt.cc -o pd_led_pmt_analysis
+g++ `root-config --cflags` `root-config --libs` -g Bi_pulser.cc -o Bi_pulser_analysis
+g++ `root-config --cflags` `root-config --libs` -g led_scan.cc -o led_scan_analysis
+g++ `root-config --cflags` `root-config --libs` -g pd_led_pmt.cc -o pd_led_pmt_analysis
 
