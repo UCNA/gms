@@ -152,7 +152,7 @@ int main (int argc, char **argv)
             pedestal = ped_fit->GetParameter(1);
 
         // Define histograms
-        his2D[i] = new TH2F(H2Fname[i], title[i], 100, -pedestal, 4096-pedestal, 100, -pd_pedestal, 512-pd_pedestal);
+        his2D[i] = new TH2F(H2Fname[i], title[i], 512, -pedestal, 4096-pedestal, 512, -pd_pedestal, 512-pd_pedestal);
         char draw_cmd[1024];
         //sprintf(draw_cmd, "%s-%f:S83028/1e6 >> %s", Qadc[i], pedestal, H2Fname[i]);
         //sprintf(draw_cmd, "(%s-%f):(Pdc36-%f) >> %s", Qadc[i], pedestal, pd_pedestal, H2Fname[i]);
@@ -297,7 +297,8 @@ int main (int argc, char **argv)
         for (int tx = 0; tx < 2; tx++) {
             for (int ty = 0; ty < 2; ty++) {
                 h2_ew_canvas->GetPad(ew+1)->cd(tx+2*ty+1);
-                his2D[4*ew+tx+2*ty]->SetMaximum(400);
+                float max = his2D[4*ew+tx+2*ty]->GetMaximum();
+                his2D[4*ew+tx+2*ty]->SetMaximum(max/100);
                 his2D[4*ew+tx+2*ty]->Draw("colz");
             }
         }
