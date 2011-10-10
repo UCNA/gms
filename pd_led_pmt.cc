@@ -41,6 +41,7 @@ TF1* FitPedestal(const char *name, TTree *tree, TCut* cut)
     int max_bin = pedestal_histogram->GetMaximumBin();
     float max_bin_x = pedestal_histogram->GetBinCenter(max_bin);
 
+    //TF1 *fit = new TF1("gauss_fit", "gaus", max_bin_x-12, max_bin_x+12);
     TF1 *fit = new TF1("gauss_fit", "gaus", max_bin_x-12, max_bin_x+12);
     if (!pedestal_histogram->Fit(fit, "R"))
     {
@@ -152,7 +153,9 @@ int main (int argc, char **argv)
             pedestal = ped_fit->GetParameter(1);
 
         // Define histograms
-        his2D[i] = new TH2F(H2Fname[i], title[i], 512, -pedestal, 4096-pedestal, 512, -pd_pedestal, 512-pd_pedestal);
+        his2D[i] = new TH2F(H2Fname[i], title[i], 
+							512, -pedestal, 4096-pedestal, 
+							512, -pd_pedestal, 512-pd_pedestal);
         char draw_cmd[1024];
         //sprintf(draw_cmd, "%s-%f:S83028/1e6 >> %s", Qadc[i], pedestal, H2Fname[i]);
         //sprintf(draw_cmd, "(%s-%f):(Pdc36-%f) >> %s", Qadc[i], pedestal, pd_pedestal, H2Fname[i]);
