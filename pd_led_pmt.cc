@@ -1,11 +1,5 @@
-
-
-#include <stdlib.h>
-#include "options/options.h"
-
 #include <TFile.h>
-//#include <TTree.h>
-#include <TChain.h>
+#include <TTree.h>
 #include <TString.h>
 #include <TCut.h>
 #include <TProfile.h>
@@ -55,7 +49,7 @@ TF1* FitPedestal(const char *name, TTree *tree, TCut* cut)
     }
 }
 
-int main (int argc, char **argv)
+int main (int arg_c, char **arg_v)
 {
     int run[argc];
     if (argc < 2)
