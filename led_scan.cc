@@ -11,6 +11,8 @@
 #include <TApplication.h>
 #include <TF1.h>
 #include <math.h>
+#include <string>
+#include <stdlib.h>
 
 // g++ `root-config --cflags` `root-config --libs` led_scan.cc -o led_scan_analysis
 
@@ -20,6 +22,8 @@
  *          Michael Mendenhall
  * Date: Aug 2010
  */
+
+ using namespace std;
 
 TF1* FitPedestal(const char *name, TTree *tree, TCut* cut)
 {
@@ -107,51 +111,51 @@ int main (int arg_c, char **arg_v)
   TGraph* g[8];
   TGraphErrors* resg[8];
 
-  char * H2Fname[8] = { "H2FE1", "H2FE2", "H2FE3", "H2FE4", "H2FW1", "H2FW2", "H2FW3", "H2FW4"};
-  char * Qadc[8] = { "Qadc0", "Qadc1", "Qadc2", "Qadc3", "Qadc4", "Qadc5", "Qadc6", "Qadc7"};
-  char * Pname[8] = { "PE1", "PE2", "PE3", "PE4", "PW1", "PW2", "PW3", "PW4"};
-  char * Cname[8] = { "CE1", "CE2", "CE3", "CE4", "CW1", "CW2", "CW3", "CW4"};
-  char * Dname[8] = { "DE1", "DE2", "DE3", "DE4", "DW1", "DW2", "DW3", "DW4"};
-  char * title[8] = {  "LED Scan E1", "LED Scan E2", "LED Scan E3", "LED Scan E4",
+  string H2Fname[8] = { "H2FE1", "H2FE2", "H2FE3", "H2FE4", "H2FW1", "H2FW2", "H2FW3", "H2FW4"};
+  string Qadc[8] = { "Qadc0", "Qadc1", "Qadc2", "Qadc3", "Qadc4", "Qadc5", "Qadc6", "Qadc7"};
+  string Pname[8] = { "PE1", "PE2", "PE3", "PE4", "PW1", "PW2", "PW3", "PW4"};
+  string Cname[8] = { "CE1", "CE2", "CE3", "CE4", "CW1", "CW2", "CW3", "CW4"};
+  string Dname[8] = { "DE1", "DE2", "DE3", "DE4", "DW1", "DW2", "DW3", "DW4"};
+  string title[8] = {  "LED Scan E1", "LED Scan E2", "LED Scan E3", "LED Scan E4",
   			"LED Scan W1", "LED Scan W2", "LED Scan W3", "LED Scan W4"};
 
   gStyle->SetPalette(1);
   gStyle->SetOptStat("");
 
-  printf("how much wood can a wood chuck chuck: %i\n", h1->GetEntries());
+  printf("how much wood can a wood chuck chuck: %d\n", (int)h1->GetEntries());
 
   for (unsigned i = 0; i < 8; i++) 
   {
-  	c[i] = new TCanvas(Cname[i], title[i]);
+  	c[i] = new TCanvas(Cname[i].c_str(), title[i].c_str());
  	c[i]->Divide(2,1);
 	c[i]->cd(1);
 
 
 	// find Pedestal
-	TF1 *ped_fit = FitPedestal(Qadc[i], h1, pedestal_cut);
+	TF1 *ped_fit = FitPedestal(Qadc[i].c_str(), h1, pedestal_cut);
         float pedestal = 0;
         if (ped_fit)
                 pedestal = ped_fit->GetParameter(1);
 
   	// Define histograms
-  	his2D[i] = new TH2F(H2Fname[i], "", 
+  	his2D[i] = new TH2F(H2Fname[i].c_str(), "", 
 		(int)(1.2*(scan_time+scan_start_time)*6), 0, 1.2*(scan_time+scan_start_time)*60, 
 		1<<8, -pedestal, 4096-pedestal);
 	char draw_cmd[1024];
-	sprintf(draw_cmd, "%s-%f:S83028/1e6 >> %s", Qadc[i], pedestal, H2Fname[i]);
+	sprintf(draw_cmd, "%s-%f:S83028/1e6 >> %s", Qadc[i].c_str(), pedestal, H2Fname[i].c_str());
   	h1->Draw(draw_cmd, *led_cut);
-	his2D[i]->SetTitle(title[i]);
+	his2D[i]->SetTitle(title[i].c_str());
  
 	int nled = (int)his2D[i]->GetEntries();
 
 	if(!nled) {
-		printf("Empty histogram for %i; skipping.\n",i);
+		printf("Empty histogram for %d; skipping.\n",i);
  		continue;
 	}
-	printf("Found %i LED events.\n",nled);
+	printf("Found %d LED events.\n",nled);
 
 	printf("Building TProfile...\n");	
-	p[i] = his2D[i]->ProfileX(Pname[i]);
+	p[i] = his2D[i]->ProfileX(Pname[i].c_str());
 	p[i]->SetErrorOption("s");
 	
 	printf("Building nPE plot...\n");	
